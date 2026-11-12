@@ -60,11 +60,15 @@ please report it ([SECURITY.md](../SECURITY.md)) — we treat false-positive bug
 改一个数字、改一个预测值、换文件、换公钥、不给公钥、用自己的密钥重签交付记录——复核都会失败。如果你找到了让虚假主张通过复核的办法，
 请按 [SECURITY.md](../SECURITY.md) 报告。
 
-## What the demos do not show / 演示没有展示的
+## Where the conclusions apply / 结论的适用范围
 
-Detection is statistical evidence, not proof. Training-use evidence needs a model that fitted the delivered data
-(linear models are not detected; weakly-fitting models can evade it). ≥ 5-copy collusion with noise defeats the copy
-fingerprint. Details: [docs/FAQ.md](../docs/FAQ.md).
+The evidence is statistical, with a stated error rate. Training-use evidence is strongest for models that really
+learned the delivered data (like beta's forecaster here); linear models memorise little and are not detected, and
+weakly-fitting models can evade it on purpose. Leak tracing holds up to 2–3 colluding copies; five or more averaged
+with noise can defeat it. Details: [docs/FAQ.md](../docs/FAQ.md).
+
+证据是误报率明确的统计证据。训练使用证据对真正学到交付数据的模型最有力（如本例中 beta 的预测模型）；线性模型几乎不记住具体数据、检不出，
+拟合较弱的模型若有意规避可能检不出。泄露追溯扛得住 2–3 份拷贝合谋，5 份以上平均再加噪可能失效。详见 [docs/FAQ.zh-CN.md](../docs/FAQ.zh-CN.md)。
 
 The bundles are generated with `packaging/export_public.py --e2e --with-torch --demo-bundles` in the ProvenMark
 repository (synthetic data, throwaway keys) and published as the release asset `sample_evidence.zip`.

@@ -31,7 +31,7 @@ bash demos/verify_sample_evidence.sh leak
 
 The scenario: one plant export was delivered to three licensees, each copy carrying a different invisible fingerprint.
 The copy "found online" was **smoothed with a 9-point moving average, cropped to the middle 60 % and re-stamped by
-+7 s**. The owner's evidence says it came from licensee *beta*, with a family-wise p ≈ 1e-99. You check it
++7 s**. The owner's evidence says it came from licensee *beta*, with a family-wise p below 1e-90 (exact value in the bundle's report). You check it
 (abridged output):
 
 ```
@@ -73,27 +73,33 @@ flowchart LR
 * **Security from the key, not from secrecy.** All algorithms are public (Kerckhoffs). Predicting the marks without
   the key reduces to breaking AES-256 ([docs/FORMAL.md](docs/FORMAL.md), S1).
 
-## What the experiments show — and what they don't
+## What we have measured
 
 Two public industrial datasets (ETTm1 transformer monitoring, SKAB water-pump test bench), CPU-scale models,
 3–6 seeds per cell. Full details in the white paper (coming to Releases).
 
 | | Result |
 |---|---|
-| Leak tracing (SKAB, 10 licensees) | correct leaker under noise, rounding, unit change, resampling, crop + subsample, timestamp shifts, 2–3-copy collusion and an AI denoiser, with **zero false attributions** |
+| Leak tracing (SKAB, 10 customers) | correct leaker under noise, rounding, unit change, resampling, crop + subsample, timestamp shifts, 2–3-copy collusion and an AI denoiser, with **zero false attributions** |
 | Data fidelity | 680/680 fidelity certificates passed; anomaly-detection F1 0.7485 → 0.7483 |
 | Training-use evidence | strongly-fitting models detected and attributed with the delivery at **16 %** of their training data (6/6, SKAB); survives output noise, quantisation, ensembling, fine-tuning and distillation |
 | False positives | copy detection: provably ≤ exp(−z²/2) for any data ([FORMAL.md](docs/FORMAL.md) T1); training evidence: exact permutation p-values, 100 independent null models within nominal rates |
 
-We state the limits up front, because evidence that hides them is worth less:
+**Where it applies** — stated up front, because the other side's expert will look for it anyway:
 
-* Statistical evidence, not proof. "Not detected" does not mean "not used".
-* Linear models are not detected; weakly-fitting models can evade training-use evidence with cheap tricks; fine-tuned
-  foundation models are untested. Averaging ≥ 5 licensees' copies plus noise defeats the fingerprint.
-* The number of licensees screened is declared by the owner. One of our own mark types (`tone`) turned out to give
-  invalid p-values on data with spectral lines; it is now excluded from every decision ([FORMAL.md](docs/FORMAL.md) N1).
+* Like any forensic evidence, this is statistical evidence with a stated error rate, not a mathematical proof; a
+  model or copy that is not detected is not thereby cleared.
+* Training-use evidence is strongest for models that really learned your data — the ones worth worrying about.
+  Linear models memorise little and are not detected; weakly-fitting models can evade it on purpose; fine-tuned
+  foundation models are not yet tested.
+* Leak tracing holds up to 2–3 colluding customers; five or more averaging their copies plus noise can push the
+  fingerprint below the evidence threshold.
+* The number of customers screened is declared by the owner, and the verifier says so. We also correct ourselves in
+  public: one auxiliary mark (`tone`) gave invalid p-values on data with spectral lines and is now excluded from every
+  decision ([FORMAL.md](docs/FORMAL.md) N1).
 
-More in the [FAQ](docs/FAQ.md): *Can AI reverse-engineer it? What is the false-positive rate? Can it prove AI training?*
+More in the [FAQ](docs/FAQ.md): *Who leaked it? Can we prove AI training? How is the evidence used in a dispute?
+Can it accuse an innocent customer? Can AI break it?*
 
 ## Use the verifier
 

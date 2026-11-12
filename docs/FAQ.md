@@ -1,84 +1,128 @@
 # FAQ
 
-Every answer is based on the project's experimental report (published as the white paper) and on
-[FORMAL.md](FORMAL.md). Numbers come from two datasets (ETTm1 transformer monitoring, SKAB water-pump test bench),
-CPU-scale models and **3–6 seeds per cell, so confidence intervals are wide**. Quote them with their conditions.
-中文版：[FAQ.zh-CN.md](FAQ.zh-CN.md).
+[中文](FAQ.zh-CN.md)
 
-## Can AI reverse-engineer or break the watermark?
+## Our data leaked. Can we find out who leaked it?
 
-**Learning the key or the mark sequence from data: infeasible under standard cryptographic assumptions.** Every
-key-dependent quantity (per-sample / per-chip signs, chip lengths and phases, the holdout split) is an output of
-AES-256 used as a pseudo-random function. An algorithm — any ML model included — that predicts unseen signs from marked
-data with non-negligible advantage would distinguish AES from a random permutation (FORMAL.md, S1). This is a
-reduction to AES, not an unconditional proof. The algorithms are public; security rests on the key (Kerckhoffs).
+**Yes — this is ProvenMark's most mature capability.** Every customer's copy carries its own invisible fingerprint.
+Given a suspect file, the key and the delivery record (no original needed) test each customer in turn and name the one
+whose copy it is.
 
-**Removing the mark without the key: possible to try, answerable only experimentally.** Tested (SKAB, 10 recipients,
-6 seeds per cell): noise, rounding, unit conversion, linear resampling, shuffling, crop + subsample combinations,
-dropping columns, timestamp shifts (with the ±30-sample offset search), 2–3-copy averaging or splicing — the leaker was
-identified every time, with **zero false attributions**. A self-supervised AI denoiser did not delete the chip mark
-`csw` but displaced it; the offset search recovers it (median z 8–12). A 9-point moving average erases the
-per-sample mark `ssw` (0/6) but not `csw`. **Known weakness:** averaging ≥ 5 recipients' copies plus noise
-(`ssw` 7/30, `ssw+csw` Fisher 12/30). **Not tested:** notch filtering / spectral whitening, estimate-and-subtract
-attacks with many copies, 100+ recipients.
+- **Disguised copies are still traced.** In the demo, the leaked copy was smoothed with a 9-point moving average,
+  cropped to the middle 60 % and re-stamped by +7 s, and was still traced to the right customer with a family-wise
+  p below 1e-90 — the probability that the file matches that customer's fingerprint by chance.
+- **Common processing does not remove it.** On the SKAB water-pump data (10 customers, 6 runs per attack): noise,
+  rounding, unit conversion, resampling, shuffling, crop + subsample combinations, dropping columns, timestamp shifts,
+  averaging or splicing 2–3 customers' copies, and an AI denoiser — **the leaker was found every time, and no
+  innocent customer was ever accused**.
+- **The data stays usable.** The fingerprint is about 1/10 of the sensor noise and capped by each sensor's tolerance;
+  ranges, rates, conservation laws and fault labels are preserved. On SKAB, 680/680 fidelity certificates passed and
+  anomaly-detection F1 went from 0.7485 to 0.7483.
 
-## What is the false-positive rate?
+**Where it applies:** five or more customers who average their copies and add noise can push the fingerprint below
+the evidence threshold (it still attributed 12 of 30 such cases). Notch filtering, estimate-and-subtract attacks with
+many copies and 100+ customers have not been tested yet.
 
-* **Copy / leak detection:** under "the data is independent of this key", the false-positive rate is at most
-  exp(−z²/2) for **any** data, whatever its autocorrelation (Hoeffding, FORMAL.md T1); no calibration is needed.
-  Screening N recipients is Bonferroni-corrected. This holds for `ssw` and `csw` (`evt` is an exact binomial test). **`tone` (spectral
-  lines) is an exception:** when the data has periodic components of its own, its parametric p-value is not valid
-  (innocent keys reached p ≤ 1e-6 in 2.4 % of trials). `tone` is therefore listed for information only and never enters
-  a decision (FORMAL.md N1); before this rule, ssw + tone tracing falsely attributed an innocent licensee in 7/150 runs,
-  after it 0/150. In all attack experiments, innocent recipients reached at most
-  z ≈ 1.9–3.4; the default decision threshold is a family-wise p < 1e-6. **Not tested:** family-wise error at
-  1,000 recipients.
-* **Training-use evidence (keyed delivery holdout):** the permutation p-value is exact under "the model never saw the
-  delivered data" (T2; conditional attribution T3). Independent null models: ETTm1, 100 nulls, default best-of-two
-  rule: 3.0 % at p ≤ 0.05 and 1.0 % at p ≤ 0.01; SKAB, 100 nulls: 3.0 % and 0 %. **Limit:** the p-value floor is
-  about 1e-4 with 10,000 decoys, so training evidence does not reach the 1e-6 level typical of copy evidence.
-* **Assumption:** if the suspect model was *legitimately* trained on data from the same source, the null hypothesis
-  of the training test does not hold (observed on SKAB).
+## Can we prove that someone trained an AI model on our data?
 
-## Can it prove that someone trained a model on my data?
+**We can give statistical evidence that the other side can verify for themselves — and the better a model has learned
+your data, the stronger it is.** Those are exactly the models worth worrying about.
 
-**It can give statistical evidence under fairly narrow conditions. It does not prove it, and it does not guarantee
-that every use is detected.**
+- **How:** each delivery silently withholds about 20 % of time blocks, chosen by a key (no value in the data is
+  changed; each customer misses different blocks). A model trained on the delivery predicts the delivered blocks
+  clearly better than the withheld ones; a model that never saw the data treats them alike. An exact permutation test
+  over 10,000 random splits says whether the gap could be chance.
+- **API access is enough.** No weights, training data or cooperation are needed: the owner sends queries and records
+  the answers, and an arbitrator can re-query the model independently instead of trusting the owner's record.
+- **Measured:** for well-trained models, with the delivery making up only **16 %** of their training data, 6 of 6 were
+  detected and attributed to the right customer (SKAB, z ≈ 11); at 10 %, 5 of 6 were detected (ETTm1).
+- **Common evasions fail:** for such models, noise or quantisation on the API output, returning only the first steps,
+  ensembling with another model, fine-tuning afterwards and distilling into a new model all left the evidence intact.
+  Smoothing the data before training fools plain queries, but the owner recovers it by also sending smoothed queries (6/6).
+- **It tells customers apart:** each customer misses different blocks, and a conditional test rules out an innocent
+  customer inheriting the signal of an overlapping leaker — no false attribution in the experiments.
+- **Demo:** evidence from API answers only, recomputed by the arbitrator from the original data, the recorded answers
+  and the owner's public key, z ≈ 12.
 
-* **Detected:** models that fit the delivered data strongly. MLP (20 epochs) on SKAB with the delivery being 16 % of
-  its training data: 6/6 detected and attributed (z ≈ 11); MLP (30 epochs) on ETTm1 at 10 %: 5/6. For such models,
-  output noise, quantisation, truncated outputs, ensembling, fine-tuning and distillation did not remove the evidence;
-  smoothing the data before training defeats the plain queries, and the owner recovers it with smoothed queries.
-  Only API access to the suspect model is needed.
-* **Not detected / not reliable:** linear models (DLinear) on both datasets; weakly-fitting models (PatchTST, 5 epochs,
-  z ≈ 4) lose the evidence under cheap API-side tricks (0.5σ output noise, returning only the first 4 steps,
-  ensembling) and under fine-tuning, distillation or smoothing — 4× more queries did not help. **Fine-tuned pre-trained
-  foundation models have not been tested with this method.**
-* **Which recipient:** each recipient gets a different withheld set; a conditional test prevents innocent recipients
-  from inheriting the leaker's signal. Zero false attributions in the experiments, but attribution power under weak
-  signals is unstable (2/6 to 4/6).
+**Where it applies:**
+- linear models (e.g. DLinear) memorise little of the specific data and are not detected;
+- for weakly-fitting models, deliberate evasion (larger output noise, returning only the first steps, ensembling) can
+  remove the evidence, and more queries do not bring it back;
+- fine-tuned pre-trained foundation models have not been tested with this method;
+- p-values have a floor (about 1e-4 with 10,000 splits), so this evidence is less extreme than leak tracing;
+- it does not apply if the other side legitimately obtained data from the same source elsewhere.
 
-## How does a third party know the owner did not cheat?
+So the precise statement is: **for models that have really learned your data, it gives training-use evidence with a
+controlled false-positive rate that the other side can verify** — not a universal test of whether any AI ever used it.
 
-Keys and parameters are fixed by commitments in a release record signed at delivery (add an external timestamp);
-the verifier recomputes every statistic with source code anyone can read and run; for training evidence the verifier trains its own reference
-model from the committed recipe, checks that it is not biased towards the withheld blocks, and can regenerate the
-queries to re-query the model itself. **Still declared by the owner:** how many recipients were screened.
+## How is the evidence used in a dispute?
+
+ProvenMark produces technical evidence: an evidence bundle plus a readable report. Anyone can check it with the
+source-available `provenmark-verify`: that the record was signed by the owner at delivery, that the keys were fixed
+then, that the file is the one in dispute — and then recompute every statistic from scratch. Typical uses:
+
+- **write it into the contract up front** — traceable fingerprints, keyed withheld blocks, an audit clause — so the
+  cost and likelihood of being caught are visible, which by itself deters breaches;
+- in a dispute, an evidence bundle the other side can check independently supports negotiation, a formal demand,
+  an audit or a request for the other side's training records;
+- in arbitration or litigation, an expert can give an opinion based on the bundle and its verification.
+
+This is statistical evidence with a stated false-positive rate; how it is weighed legally depends on the jurisdiction
+and rules of evidence. ProvenMark does not give legal advice.
+
+## Can it falsely accuse an innocent customer?
+
+The false-positive rate is **known in advance and checkable afterwards**:
+
+- **Leak tracing:** for any data, whatever its autocorrelation, the false-positive rate has a proven bound exp(−z²/2)
+  ([FORMAL.md](FORMAL.md) T1), with no calibration needed; screening several customers is corrected for their number.
+  The default threshold is a family-wise p < 1e-6; in the experiments, innocent customers never exceeded z ≈ 1.9–3.4.
+- **Training-use evidence:** the permutation p-value is exact when the model never saw the delivered data
+  (FORMAL.md T2, T3). With 100 models that never saw the data: ETTm1 3.0 % at p ≤ 0.05 and 1.0 % at p ≤ 0.01; SKAB
+  3.0 % and 0 % — within nominal rates.
+- **We publish our own corrections:** we found that an auxiliary mark (`tone`, spectral lines) gives invalid p-values
+  on data with periodic components of its own — before the fix it caused 7 false attributions in 150 tracing runs. It
+  is now listed for information only and never part of a decision; after the fix, 0 of 150 (FORMAL.md N1).
+
+Not yet tested: family-wise error with 1,000 customers.
+
+## Can AI reverse-engineer or break it?
+
+- **Learning the key or the mark from the data: infeasible under standard cryptographic assumptions.** Every mark sign,
+  chip length and phase and the choice of withheld blocks is generated from the key with AES-256; predicting them
+  without the key would break AES (FORMAL.md S1). The algorithms are public; security rests on the key.
+- **Removing the mark without the key** is an experimental question, answered in the first section: common
+  processing, 2–3-copy collusion and an AI denoiser did not remove it (the denoiser only displaced it; the offset search
+  recovers it, median z 8–12). Collusion of five or more copies plus noise is the known weakness.
+- **Reverse-engineering the verifier gains nothing:** it contains no keys; a bundle reveals only the accused
+  customer's subkey, which is burnt on disclosure. The master key and other customers' keys never appear.
+
+## Why should a third party trust that the owner did not cheat?
+
+- Keys and parameters are committed in a **delivery record signed at delivery** and cannot be changed afterwards
+  (add an external trusted timestamp);
+- the verifier must use the owner's public key obtained independently, otherwise nothing verifies;
+- every statistic and the conclusion are recomputed by the verifier — the numbers in the bundle are only compared; for
+  training evidence the verifier trains its own reference model from the committed recipe, checks it is not biased
+  towards the withheld blocks, and can re-query the model itself.
+- The one thing the owner declares is how many customers were screened (for the multiple-testing correction); the
+  verification output says so explicitly.
 
 ## What does revealing a subkey cost?
 
-It burns that recipient's fingerprint (whoever holds the subkey can strip that mark). The master key and other
-recipients' fingerprint keys are never revealed; training evidence also reveals the holdout keys of the recipients
-used for the conditional test.
+The accused customer's subkey is burnt (whoever holds it can strip that fingerprint), so later deliveries to that
+customer should use a new recipient identifier. The master key and other customers' fingerprint keys are never
+revealed. Training evidence also reveals the holdout keys of the customers used in the conditional test (also burnt)
+so that a third party can recompute it.
 
-## Does marking damage the data?
+## Where do the numbers come from?
 
-Marks are about 0.1× the local noise level and capped by per-sensor absolute tolerances; the commercial
-constraint-aware embedding guarantees tolerances, ranges, rates and linear conservation laws (FORMAL.md P1) and never
-touches fault labels. Measured: SKAB 680/680 fidelity certificates passed, anomaly-detection F1 0.7485 → 0.7483;
-ETTm1 forecast error change ≤ 0.3 %. The holdout method changes no values; it withholds about 20 % of time blocks.
+Two public industrial datasets (ETTm1 transformer monitoring; SKAB water-pump test bench with 34 labelled fault
+experiments), CPU-scale forecasting models (linear, MLP, Transformer-style), 3–6 independent repetitions per setting.
+Full experiments, parameters and confidence intervals are in the white paper (coming to Releases); provable properties
+and their assumptions are in [FORMAL.md](FORMAL.md). Please quote numbers together with their conditions.
 
 ## What is experimental?
 
-The `gl`, `cue`, `xc`, `xcue` marks and the mark-based training probes. They are not capability claims
-(e.g. `cue` was not detected on an 80 % crop of a marked copy).
+The `gl`, `cue`, `xc`, `xcue` marks and the mark-based training probes are research features and not capability
+claims (e.g. `cue` was not detected on an 80 % crop of a marked copy).

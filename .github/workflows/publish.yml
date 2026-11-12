@@ -1,0 +1,46 @@
+# Publishes to PyPI ONLY when started by hand (Actions -> publish -> Run workflow), using PyPI trusted publishing (OIDC):
+# no API token is stored anywhere. Creating a GitHub release (e.g. to attach sample_evidence.zip) does NOT publish.
+# One-time setup on pypi.org: add a "pending publisher" for project provenmark-verify with owner GANGMU-SBOM,
+# repository provenmark-demo, workflow publish.yml, environment pypi.
+name: publish
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_version:
+        description: "Type the version in pyproject.toml to publish it (PyPI versions can never be re-used)"
+        required: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: version check
+        run: |
+          v=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
+          test "$v" = "${{ inputs.confirm_version }}" || { echo "pyproject version $v != confirmed ${{ inputs.confirm_version }}"; exit 1; }
+      - run: pip install build twine
+      - run: python -m build
+      - run: python -m twine check --strict dist/*
+      - name: tests against the built wheel
+        run: |
+          pip install "$(ls dist/*.whl)[dev]"
+          pytest -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

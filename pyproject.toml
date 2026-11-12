@@ -1,14 +1,32 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
 name = "provenmark-verify"
 version = "0.1.0"
 description = "Independent verification of ProvenMark evidence bundles, release records and statistical tests (no secret key needed)."
-readme = "README.md"
-license = { file = "LICENSE" }
-classifiers = ["License :: Other/Proprietary License"]   # LicenseRef-PolyForm-Shield-1.0.0: source-available, not OSI open source
+readme = "README.pypi.md"
+# source-available, not OSI open source (packaging/LICENSING.md in the ProvenMark repository)
+license = "LicenseRef-PolyForm-Shield-1.0.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "GANGMU-SBOM", email = "64031875@qq.com" }]
+keywords = ["watermarking", "data provenance", "industrial data", "time series", "evidence verification", "training data attribution", "forensics"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Legal Industry",
+  "Intended Audience :: Information Technology",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security :: Cryptography",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+]
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24", "pandas>=2.0", "scipy>=1.10", "cryptography>=41", "click>=8.1"]
 
@@ -17,11 +35,21 @@ torch = ["torch>=2.1"]
 parquet = ["pyarrow>=14"]
 dev = ["pytest>=7", "pyarrow>=14", "z3-solver>=4.12"]
 
+[project.urls]
+Homepage = "https://github.com/GANGMU-SBOM/provenmark-demo"
+Source = "https://github.com/GANGMU-SBOM/provenmark-demo"
+Documentation = "https://github.com/GANGMU-SBOM/provenmark-demo/blob/main/docs/FORMATS.md"
+FAQ = "https://github.com/GANGMU-SBOM/provenmark-demo/blob/main/docs/FAQ.md"
+Security = "https://github.com/GANGMU-SBOM/provenmark-demo/blob/main/SECURITY.md"
+
 [project.scripts]
 provenmark-verify = "provenmark_verify.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/provenmark_verify"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/demos/sample_evidence", "/.github"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,20 +1,22 @@
-# Demos — be the arbitrator / 你来当仲裁方
+# Demos — be the independent reviewer / 你来当复核方
 
-Two disputes, already "filed". The owner has done its part with the commercial ProvenMark tool on **synthetic plant
-data** (1 Hz, 12 h, temperature, vibration, pressure, machine state) and handed over evidence bundles. Your job: decide
-whether the evidence holds, using only this repository and the owner's public key.
+Two **simulated** scenarios on **synthetic** plant data (1 Hz, 12 h: temperature, vibration, pressure, machine state).
+The data owner and the licensees acme, beta and gamma are fictional; no real company, dataset or dispute is involved.
+The owner's side was produced with the commercial ProvenMark tool and packaged as evidence bundles. Your role is the
+independent reviewer: decide whether the evidence holds, using only this repository and the owner's public key.
 
-两起"已经立案"的纠纷。所有者已用 ProvenMark 商业版在**合成工厂数据**上完成取证，交出了证据包。你的任务：只用本仓库和所有者公钥，判断证据是否成立。
+两个**模拟场景**，使用**合成**的工厂数据（1 Hz、12 小时：温度、振动、压力、设备状态）。数据所有者与被许可方 acme、beta、gamma 均为虚构，
+不涉及任何真实的公司、数据或纠纷。所有者一侧用 ProvenMark 商业版生成证据包；你扮演独立的复核方：只用本仓库和所有者公钥，判断证据是否成立。
 
 ## Setup / 准备
 
 ```bash
-pip install -e .                    # case 2 also needs: pip install -e ".[torch]"
+pip install -e .                    # scenario 2 also needs: pip install -e ".[torch]"
 # download sample_evidence.zip from the Releases page, then:
 unzip sample_evidence.zip -d demos/
 ```
 
-## Case 1 — "Who leaked our plant data?" / 谁泄露的
+## Scenario 1 — "Who leaked the plant data?" / 场景 1：谁泄露的
 
 The same export went to three licensees (acme, beta, gamma), each copy with a different invisible fingerprint
 (`ssw` per-sample + `csw` smoothing-robust chips + `evt` on machine-state transitions). A copy found online had been
@@ -28,7 +30,7 @@ bash demos/verify_sample_evidence.sh leak
 
 Every statistic is recomputed on your machine; the owner's readable report is `sample_evidence/leak/evidence.md`.
 
-## Case 2 — "Did they train an AI on it?" / 是否被拿去训练 AI
+## Scenario 2 — "Was it used to train an AI?" / 场景 2：是否被拿去训练 AI
 
 Each licensee's delivery silently withheld a different keyed 20 % of time blocks — nothing was added to the data.
 Licensee beta trained a forecaster on its delivery and serves it as an API. The owner only recorded the API's answers

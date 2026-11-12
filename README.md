@@ -29,7 +29,7 @@ pip install -e .
 bash demos/verify_sample_evidence.sh leak
 ```
 
-The scenario: one plant export was delivered to three licensees, each copy carrying a different invisible fingerprint.
+The (simulated) scenario, on synthetic data with fictional parties: one plant export was delivered to three licensees, each copy carrying a different invisible fingerprint.
 The copy "found online" was **smoothed with a 9-point moving average, cropped to the middle 60 % and re-stamped by
 +7 s**. The owner's evidence says it came from licensee *beta*, with a family-wise p below 1e-90 (exact value in the bundle's report). You check it
 (abridged output):

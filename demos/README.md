@@ -11,10 +11,15 @@ independent reviewer: decide whether the evidence holds, using only this reposit
 ## Setup / 准备
 
 ```bash
-pip install -e .                    # scenario 2 also needs: pip install -e ".[torch]"
-# download sample_evidence.zip from the Releases page, then:
-unzip sample_evidence.zip -d demos/
+pip install provenmark-verify                 # scenario 2 also needs: pip install "provenmark-verify[torch]"
+curl -LO https://github.com/GANGMU-SBOM/provenmark-demo/releases/latest/download/sample_evidence.zip
+unzip -q sample_evidence.zip -d demos/        # in a clone of this repository; elsewhere just unzip it
 ```
+
+The commands below use `bash demos/verify_sample_evidence.sh` from a clone of this repository. Without a clone, run
+`provenmark-verify verify-evidence` on the files in `sample_evidence/leak` or `sample_evidence/training`, as shown in
+the [main README](../README.md). / 下面的命令在本仓库的克隆目录中运行；不克隆时，对 `sample_evidence/leak` 或
+`sample_evidence/training` 里的文件直接运行 `provenmark-verify verify-evidence`（见[主 README](../README.zh-CN.md)）。
 
 ## Scenario 1 — "Who leaked the plant data?" / 场景 1：谁泄露的
 

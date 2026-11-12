@@ -2,6 +2,7 @@
 
 ### Prove where your industrial data went — with evidence the other side can check for themselves.
 
+[![PyPI](https://img.shields.io/pypi/v/provenmark-verify)](https://pypi.org/project/provenmark-verify/)
 [![License: PolyForm Shield 1.0.0](https://img.shields.io/badge/license-PolyForm%20Shield%201.0.0-blue)](LICENSE)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 [![GitHub stars](https://img.shields.io/github/stars/GANGMU-SBOM/provenmark-demo?style=social)](https://github.com/GANGMU-SBOM/provenmark-demo)
@@ -23,10 +24,10 @@ repository is the verifier: read the code, run it on the evidence, and decide fo
 ## 60-second demo: catch the leaker of a disguised copy
 
 ```bash
-git clone https://github.com/GANGMU-SBOM/provenmark-demo && cd provenmark-demo
-pip install -e .
-# download sample_evidence.zip from the Releases page and unzip it into demos/
-bash demos/verify_sample_evidence.sh leak
+pip install provenmark-verify
+curl -LO https://github.com/GANGMU-SBOM/provenmark-demo/releases/latest/download/sample_evidence.zip && unzip -q sample_evidence.zip
+provenmark-verify verify-evidence sample_evidence/leak/evidence.json sample_evidence/leak/found_online.csv \
+    --pubkey sample_evidence/leak/owner.pub.json
 ```
 
 The (simulated) scenario, on synthetic data with fictional parties: one plant export was delivered to three licensees, each copy carrying a different invisible fingerprint.
@@ -48,7 +49,16 @@ Change a single number in the evidence, swap the file or use the wrong owner key
 
 **Second demo — training-use evidence through an API only.** A licensee trained a forecaster on its delivery and
 serves it. The owner never sees the model weights, only API answers. The arbiter re-trains the reference model from the
-signed recipe and recomputes the test: `bash demos/verify_sample_evidence.sh training` (needs `pip install -e ".[torch]"`).
+signed recipe and recomputes the test:
+
+```bash
+pip install "provenmark-verify[torch]"
+provenmark-verify verify-evidence sample_evidence/training/evidence_training.json \
+    --original sample_evidence/training/plant.csv --predictions sample_evidence/training/predictions.npy \
+    --pubkey sample_evidence/training/owner.pub.json
+```
+
+More on both scenarios, and how to try to break them: [demos/](demos/README.md).
 
 ## How it works
 
@@ -103,13 +113,15 @@ Can it accuse an innocent customer? Can AI break it?*
 ## Use the verifier
 
 ```bash
-pip install -e .            # add [torch] for training evidence with a neural reference model
+pip install provenmark-verify          # add [torch] for training evidence with a neural reference model
 provenmark-verify verify-evidence evidence.json suspect.csv --pubkey owner.pub.json
 provenmark-verify verify-evidence evidence_training.json --original original.csv \
     --predictions predictions.npy --pubkey owner.pub.json
 provenmark-verify holdout-queries original.csv --evidence evidence_training.json --out queries.npz   # re-query the model yourself
 provenmark-verify verify-manifest data.csv --manifest data.csv.release.json --pubkey owner.pub.json --time-col ts
 ```
+
+From source (to read or modify the code): `git clone https://github.com/GANGMU-SBOM/provenmark-demo && cd provenmark-demo && pip install -e ".[dev]" && pytest`.
 
 `--pubkey` is required: without the owner's public key (obtained through an independent channel, not from the bundle)
 the signer is not pinned and the result is never VERIFIED. Exit code 0 = verified. Every field and every check:

@@ -2,6 +2,7 @@
 
 ### 数据交付出去之后，证明它去了哪里——而且证据对方也能自己核对。
 
+[![PyPI](https://img.shields.io/pypi/v/provenmark-verify)](https://pypi.org/project/provenmark-verify/)
 [![License: PolyForm Shield 1.0.0](https://img.shields.io/badge/license-PolyForm%20Shield%201.0.0-blue)](LICENSE)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
 [![GitHub stars](https://img.shields.io/github/stars/GANGMU-SBOM/provenmark-demo?style=social)](https://github.com/GANGMU-SBOM/provenmark-demo)
@@ -20,10 +21,10 @@ ProvenMark 给出的是**第三方不需要任何密钥就能自己重算的统�
 ## 60 秒演示：揪出一份"伪装过"的泄露拷贝
 
 ```bash
-git clone https://github.com/GANGMU-SBOM/provenmark-demo && cd provenmark-demo
-pip install -e .
-# 从 Releases 页面下载 sample_evidence.zip，解压到 demos/ 下
-bash demos/verify_sample_evidence.sh leak
+pip install provenmark-verify
+curl -LO https://github.com/GANGMU-SBOM/provenmark-demo/releases/latest/download/sample_evidence.zip && unzip -q sample_evidence.zip
+provenmark-verify verify-evidence sample_evidence/leak/evidence.json sample_evidence/leak/found_online.csv \
+    --pubkey sample_evidence/leak/owner.pub.json
 ```
 
 模拟场景（合成数据，各方均为虚构）：同一份工厂数据交付给 3 个被许可方，每份拷贝带着各不相同的隐形指纹。网上发现的拷贝被**做了 9 点移动平均、只留中间 60%、
@@ -42,7 +43,16 @@ evidence VERIFIED; claim supported
 把证据里任何一个数字改一下、换一个文件、或者用错所有者公钥——复核都会失败。
 
 **第二个演示：只通过模型 API 证明"拿去训练了"。** 某被许可方违约用交付数据训练了预测模型并对外提供服务；所有者看不到模型权重，
-只能调用 API。仲裁方按签名登记的配方自己训练参考模型、重算检验：`bash demos/verify_sample_evidence.sh training`（需要 `pip install -e ".[torch]"`）。
+只能调用 API。复核方按签名登记的配方自己训练参考模型、重算检验：
+
+```bash
+pip install "provenmark-verify[torch]"
+provenmark-verify verify-evidence sample_evidence/training/evidence_training.json \
+    --original sample_evidence/training/plant.csv --predictions sample_evidence/training/predictions.npy \
+    --pubkey sample_evidence/training/owner.pub.json
+```
+
+两个场景的详细说明，以及"试着攻破它"：见 [demos/](demos/README.md)。
 
 ## 原理
 
@@ -88,13 +98,15 @@ flowchart LR
 ## 使用复核工具
 
 ```bash
-pip install -e .            # 复核登记了神经网络参考模型的训练证据时，加 [torch]
+pip install provenmark-verify          # 复核登记了神经网络参考模型的训练证据时，加 [torch]
 provenmark-verify verify-evidence evidence.json suspect.csv --pubkey owner.pub.json                 # 拷贝 / 泄露证据
 provenmark-verify verify-evidence evidence_training.json --original original.csv \
     --predictions predictions.npy --pubkey owner.pub.json                                            # 训练使用证据
 provenmark-verify holdout-queries original.csv --evidence evidence_training.json --out queries.npz   # 自己重新查询模型
 provenmark-verify verify-manifest data.csv --manifest data.csv.release.json --pubkey owner.pub.json --time-col ts
 ```
+
+从源码安装（阅读或修改代码）：`git clone https://github.com/GANGMU-SBOM/provenmark-demo && cd provenmark-demo && pip install -e ".[dev]" && pytest`。
 
 必须用 `--pubkey` 提供所有者公钥（通过独立渠道获取，不要用证据包里附带的）：不提供时无法确认签名者，复核结果一律不通过。
 退出码 0 = 复核通过。每个字段、每项检查的含义见 [docs/FORMATS.md](docs/FORMATS.md)。

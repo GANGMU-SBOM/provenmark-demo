@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "provenmark-verify"
+version = "0.1.0"
+description = "Independent verification of ProvenMark evidence bundles, release records and statistical tests (no secret key needed)."
+readme = "README.md"
+license = { file = "LICENSE" }
+classifiers = ["License :: Other/Proprietary License"]   # LicenseRef-PolyForm-Shield-1.0.0: source-available, not OSI open source
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "pandas>=2.0", "scipy>=1.10", "cryptography>=41", "click>=8.1"]
+
+[project.optional-dependencies]
+torch = ["torch>=2.1"]
+parquet = ["pyarrow>=14"]
+dev = ["pytest>=7", "pyarrow>=14", "z3-solver>=4.12"]
+
+[project.scripts]
+provenmark-verify = "provenmark_verify.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/provenmark_verify"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -1,0 +1,6 @@
+{
+  "exported_from_commit": "83ca872",
+  "manifest": "packaging/public_manifest.toml",
+  "package": "provenmark-verify",
+  "version": "0.1.0"
+}

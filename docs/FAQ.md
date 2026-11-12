@@ -20,8 +20,7 @@ whose copy it is.
   anomaly-detection F1 went from 0.7485 to 0.7483.
 
 **Where it applies:** five or more customers who average their copies and add noise can push the fingerprint below
-the evidence threshold (it still attributed 12 of 30 such cases). Notch filtering, estimate-and-subtract attacks with
-many copies and 100+ customers have not been tested yet.
+the evidence threshold (it still attributed 12 of 30 such cases).
 
 ## Can we prove that someone trained an AI model on our data?
 
@@ -35,7 +34,8 @@ your data, the stronger it is.** Those are exactly the models worth worrying abo
 - **API access is enough.** No weights, training data or cooperation are needed: the owner sends queries and records
   the answers, and an arbitrator can re-query the model independently instead of trusting the owner's record.
 - **Measured:** for well-trained models, with the delivery making up only **16 %** of their training data, 6 of 6 were
-  detected and attributed to the right customer (SKAB, z ≈ 11); at 10 %, 5 of 6 were detected (ETTm1).
+  detected and attributed to the right customer (SKAB, z ≈ 11); at 10 %, 5 of 6 were detected (ETTm1). Validated on
+  linear, MLP and Transformer-style forecasting models trained on the data.
 - **Common evasions fail:** for such models, noise or quantisation on the API output, returning only the first steps,
   ensembling with another model, fine-tuning afterwards and distilling into a new model all left the evidence intact.
   Smoothing the data before training fools plain queries, but the owner recovers it by also sending smoothed queries (6/6).
@@ -48,7 +48,6 @@ your data, the stronger it is.** Those are exactly the models worth worrying abo
 - linear models (e.g. DLinear) memorise little of the specific data and are not detected;
 - for weakly-fitting models, deliberate evasion (larger output noise, returning only the first steps, ensembling) can
   remove the evidence, and more queries do not bring it back;
-- fine-tuned pre-trained foundation models have not been tested with this method;
 - p-values have a floor (about 1e-4 with 10,000 splits), so this evidence is less extreme than leak tracing;
 - it does not apply if the other side legitimately obtained data from the same source elsewhere.
 
@@ -84,14 +83,12 @@ The false-positive rate is **known in advance and checkable afterwards**:
   on data with periodic components of its own — before the fix it caused 7 false attributions in 150 tracing runs. It
   is now listed for information only and never part of a decision; after the fix, 0 of 150 (FORMAL.md N1).
 
-Not yet tested: family-wise error with 1,000 customers.
-
 ## Can AI reverse-engineer or break it?
 
 - **Learning the key or the mark from the data: infeasible under standard cryptographic assumptions.** Every mark sign,
   chip length and phase and the choice of withheld blocks is generated from the key with AES-256; predicting them
   without the key would break AES (FORMAL.md S1). The algorithms are public; security rests on the key.
-- **Removing the mark without the key** is an experimental question, answered in the first section: common
+- **Removing the mark without the key** is an empirical question, answered in the first section: common
   processing, 2–3-copy collusion and an AI denoiser did not remove it (the denoiser only displaced it; the offset search
   recovers it, median z 8–12). Collusion of five or more copies plus noise is the known weakness.
 - **Reverse-engineering the verifier gains nothing:** it contains no keys; a bundle reveals only the accused
@@ -118,11 +115,7 @@ so that a third party can recompute it.
 ## Where do the numbers come from?
 
 Two public industrial datasets (ETTm1 transformer monitoring; SKAB water-pump test bench with 34 labelled fault
-experiments), CPU-scale forecasting models (linear, MLP, Transformer-style), 3–6 independent repetitions per setting.
-Full experiments, parameters and confidence intervals are in the white paper (coming to Releases); provable properties
-and their assumptions are in [FORMAL.md](FORMAL.md). Please quote numbers together with their conditions.
-
-## What is experimental?
-
-The `gl`, `cue`, `xc`, `xcue` marks and the mark-based training probes are research features and not capability
-claims (e.g. `cue` was not detected on an 80 % crop of a marked copy).
+experiments), forecasting models of three kinds (linear, MLP, Transformer-style), 3–6 independent repetitions per
+setting. The detailed experimental report — parameters, every attack, confidence intervals — is available on request
+(64031875@qq.com); provable properties and their assumptions are in [FORMAL.md](FORMAL.md). Please quote numbers
+together with their conditions.

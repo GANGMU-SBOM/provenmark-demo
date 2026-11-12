@@ -21,7 +21,7 @@ So we treat as **security vulnerabilities** (please report privately):
 | Party | Can | Assumed / mitigated by |
 |---|---|---|
 | Data owner (prover) | choose keys, parameters, reference recipe; select what to report | keys and parameters fixed by commitments inside a record signed at delivery (anchor with an external timestamp); the verifier recomputes; the verifier trains its own reference model; reference fairness check. **Not mitigated:** the number of recipients screened is declared by the owner. |
-| Accused recipient | know the algorithms and the public format; hold its own copy (and, after the dispute, its burnt subkeys) | security rests on the key (Kerckhoffs): marks are outputs of AES-256 used as a PRF; recovering keys or predicting unseen marks from data reduces to breaking AES (docs/FORMAL.md, S1). Removal **without** the key (smoothing, denoising, collusion) is an experimental question, not a provable one. |
+| Accused recipient | know the algorithms and the public format; hold its own copy (and, after the dispute, its burnt subkeys) | security rests on the key (Kerckhoffs): marks are outputs of AES-256 used as a PRF; recovering keys or predicting unseen marks from data reduces to breaking AES (docs/FORMAL.md, S1). Removal **without** the key (smoothing, denoising, collusion) is an empirical question, not a provable one. |
 | Third party / arbitrator | full access to this code, the bundle, the files | needs nothing secret; must obtain the owner's public key independently. |
 | Detection-oracle attacker | query a detector repeatedly | detection requires the subkey; bundles reveal only the accused recipient's burnt subkeys, never the master key. |
 

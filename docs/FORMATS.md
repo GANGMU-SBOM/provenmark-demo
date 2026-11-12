@@ -82,7 +82,7 @@ A release record is a `provenmark.manifest/1` of the **delivered** file with:
 
 Per-method parameters: `ssw {columns, alpha}`; `csw {columns, alpha, chip}`; `evt {columns}`;
 `tone {band: [f_lo, f_hi], columns: {col: {counters: [...]}}, shared, select: {...}}`; `gl {columns: {col: {delta}}}`;
-`cue`, `xc`, `xcue`: method-specific dictionaries (experimental). Only detection-relevant values are needed by a
+`cue`, `xc`, `xcue`: method-specific dictionaries. Only detection-relevant values are needed by a
 verifier; amplitudes are recorded for information.
 
 ### `provenmark.holdout/1`

@@ -1,5 +1,5 @@
 {
-  "exported_from_commit": "ff7900a",
+  "exported_from_commit": "3b05b2b",
   "manifest": "packaging/public_manifest.toml",
   "package": "provenmark-verify",
   "version": "0.1.0"

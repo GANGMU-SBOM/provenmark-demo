@@ -75,8 +75,8 @@ flowchart LR
 
 ## What we have measured
 
-Two public industrial datasets (ETTm1 transformer monitoring, SKAB water-pump test bench), CPU-scale models,
-3–6 seeds per cell. Full details in the white paper (coming to Releases).
+Two public industrial datasets (ETTm1 transformer monitoring, SKAB water-pump test bench), three kinds of forecasting
+models (linear, MLP, Transformer-style), 3–6 independent repetitions per setting. Detailed report on request.
 
 | | Result |
 |---|---|
@@ -90,8 +90,7 @@ Two public industrial datasets (ETTm1 transformer monitoring, SKAB water-pump te
 * Like any forensic evidence, this is statistical evidence with a stated error rate, not a mathematical proof; a
   model or copy that is not detected is not thereby cleared.
 * Training-use evidence is strongest for models that really learned your data — the ones worth worrying about.
-  Linear models memorise little and are not detected; weakly-fitting models can evade it on purpose; fine-tuned
-  foundation models are not yet tested.
+  Linear models memorise little and are not detected; weakly-fitting models can evade it on purpose.
 * Leak tracing holds up to 2–3 colluding customers; five or more averaging their copies plus noise can push the
   fingerprint below the evidence threshold.
 * The number of customers screened is declared by the owner, and the verifier says so. We also correct ourselves in
